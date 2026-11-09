@@ -15,10 +15,20 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v2
+      - name: Setup Android SDK Manually
+        run: |
+          mkdir -p $HOME/android-sdk/cmdline-tools
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+          unzip -q cmdline-tools.zip -d $HOME/android-sdk/cmdline-tools
+          mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
+          
+          echo "export ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+          echo "export PATH=\$PATH:\$ANDROID_HOME/cmdline-tools/latest/bin:\$ANDROID_HOME/platform-tools" >> $GITHUB_ENV
+          
+          yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
-      - name: Create Gradle Wrapper & Build Files
+      - name: Create Gradle Files
         run: |
           mkdir -p app/src/main/res/values
           echo '<?xml version="1.0" encoding="utf-8"?><resources><string name="app_name">Security PoC</string></resources>' > app/src/main/res/values/strings.xml
@@ -70,7 +80,11 @@ jobs:
           EOF
 
       - name: Build Debug APK
-        run: chmod +x gradlew || true; ./gradlew assembleDebug --no-daemon || gradle assembleDebug --no-daemon || true
+        run: |
+          export ANDROID_HOME=$HOME/android-sdk
+          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
+          chmod +x gradlew || true
+          gradle assembleDebug --no-daemon || ./gradlew assembleDebug --no-daemon || true
 
       - name: Generate Direct APK Artifact
         uses: actions/upload-artifact@v4
