@@ -73,7 +73,7 @@ jobs:
         run: chmod +x gradlew || true; ./gradlew assembleDebug --no-daemon || gradle assembleDebug --no-daemon || true
 
       - name: Generate Direct APK Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: app-debug
           path: |
