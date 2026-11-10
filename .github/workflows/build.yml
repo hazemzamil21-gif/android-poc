@@ -1,4 +1,4 @@
-name: Build Android APK
+  name: Build Android APK
 
 on: [push]
 
@@ -86,10 +86,14 @@ jobs:
           chmod +x gradlew || true
           gradle assembleDebug --no-daemon || ./gradlew assembleDebug --no-daemon || true
 
+      - name: Find and List APKs
+        run: find . -name "*.apk"
+
       - name: Generate Direct APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
           path: |
-            app/build/outputs/apk/debug/app-debug.apk
-            **/app-debug.apk
+            **/*.apk
+            app/build/outputs/apk/**/*.apk
+          if-no-files-found: warn
